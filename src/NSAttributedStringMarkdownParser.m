@@ -396,8 +396,9 @@ int markdownConsume(char* text, int token, yyscan_t scanner);
     NSLog(@"*** Unable To Create CTParagraphStyle in apply paragraph formatting" );
     return nil;
   }
-
-  return @{(NSString *)kCTParagraphStyleAttributeName : (__bridge id)style};
+    NSDictionary *dict = @{(NSString *)kCTParagraphStyleAttributeName : (__bridge id)style};
+    CFRelease(style);
+    return dict;
 }
 
 - (void)applyParagraphStyleWithArray:(NSMutableArray *)array firstLineHeadIndent:(CGFloat)firstLineHeadIndent headIndent:(CGFloat)headIndent {
