@@ -76,7 +76,6 @@ int markdownConsume(char* text, int token, yyscan_t scanner);
   NSMutableArray* _links;
 
   UIFont* _topFont;
-  NSMutableDictionary* _fontCache;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -91,8 +90,9 @@ int markdownConsume(char* text, int token, yyscan_t scanner);
     self.boldFontName = [UIFont boldSystemFontOfSize:12].fontName;
     self.italicFontName = @"Helvetica-Oblique";
     self.boldItalicFontName = @"Helvetica-BoldOblique";
+      
     self.blockQuotesAttributes = @{
-                                   NSFontAttributeName : (__bridge id)[self fontRefForFontWithName:self.italicFontName pointSize:self.paragraphFont.pointSize],
+                                   NSFontAttributeName : [UIFont fontWithName:self.italicFontName size:self.paragraphFont.pointSize],
                                    NSForegroundColorAttributeName : [UIColor darkGrayColor]
                                    };
 
@@ -327,26 +327,20 @@ int markdownConsume(char* text, int token, yyscan_t scanner);
   return [fontName stringByAppendingFormat:@"%f", pointSize];
 }
 
-- (CTFontRef)fontRefForFontWithName:(NSString *)fontName pointSize:(CGFloat)pointSize {
-  id key = [self keyForFontWithName:fontName pointSize:pointSize];
-  NSValue* value = _fontCache[key];
-  if (nil == value) {
-    CTFontRef fontRef = CTFontCreateWithName((__bridge CFStringRef)fontName, pointSize, nil);
-    value = [NSValue valueWithPointer:fontRef];
-    _fontCache[key] = value;
-  }
-  return [value pointerValue];
+- (CTFontRef)newFontRefForFontWithName:(NSString *)fontName pointSize:(CGFloat)pointSize {
+  CTFontRef fontRef = CTFontCreateWithName((__bridge CFStringRef)fontName, pointSize, nil);
+  return fontRef;
 }
 
 - (NSDictionary *)attributesForFontWithName:(NSString *)fontName {
-  CTFontRef fontRef = [self fontRefForFontWithName:fontName pointSize:self.topFont.pointSize];
+  CTFontRef fontRef = [self newFontRefForFontWithName:fontName pointSize:self.topFont.pointSize];
   NSDictionary* attributes = @{(__bridge NSString* )kCTFontAttributeName:(__bridge id)fontRef};
   CFRelease(fontRef);
   return attributes;
 }
 
 - (NSDictionary *)attributesForFont:(UIFont *)font {
-  CTFontRef fontRef = [self fontRefForFontWithName:font.fontName pointSize:font.pointSize];
+  CTFontRef fontRef = [self newFontRefForFontWithName:font.fontName pointSize:font.pointSize];
   NSDictionary* attributes = @{(__bridge NSString* )kCTFontAttributeName:(__bridge id)fontRef};
   CFRelease(fontRef);
   return attributes;
